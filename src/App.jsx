@@ -61,7 +61,7 @@ export default function App() {
 			);
 
 			const waveTxn = await wavePortalContract.wave(inputMessage, {
-				gasLimit: 300000
+				gasLimit: 1000000
 			});
 			console.log('Mining: ', waveTxn.hash);
 			setIsMining(true);
@@ -83,6 +83,8 @@ export default function App() {
 			setAllWaves(processedWaves);
 		} catch (error) {
 			console.log(error);
+			alert('Mining your wave transaction failed!');
+			setIsMining(false);
 		}
 	};
 
@@ -157,11 +159,11 @@ export default function App() {
 			wavePortalContract.on('NewWave', onNewWave);
 		}
 
-    return () => {
-      if (wavePortalContract) {
-        wavePortalContract.off("NewWave", onNewWave)
-      }
-    }
+		return () => {
+			if (wavePortalContract) {
+				wavePortalContract.off('NewWave', onNewWave);
+			}
+		};
 	}, []);
 
 	useEffect(() => {
