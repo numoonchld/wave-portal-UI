@@ -1,6 +1,16 @@
+.loginButton {
+  cursor: pointer;
+  padding: 10px;
+  border: 0;
+  border-radius: 5px;
+  width: 50%;
+}
+
 .mainContainer {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;  
   width: 100%;
   margin-top: 64px;
 }
@@ -72,6 +82,7 @@
   margin: 0px 5px;
   border-color: black;
 }
+
 
 /* https://projects.lukehaas.me/css-loaders/ */
 .miningSpinner {

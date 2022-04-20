@@ -9,6 +9,7 @@ export default function App() {
 	const [totalWaves, setTotalWaves] = useState(null);
 	const [allWaves, setAllWaves] = useState([]);
 	const [isMining, setIsMining] = useState(false);
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
 
 	const contractAddress = '0xa8fBD49Ec9664461c0dBD5874FA70e6a11dF0fe7';
 	const contractABI = abi.abi;
@@ -35,7 +36,26 @@ export default function App() {
 		return 0;
 	};
 
+	const connectWallet = async () => {
+		const accounts = await ethereum.request({
+			method: 'eth_requestAccounts'
+		});
+
+		const account = accounts[0];
+		console.log('Connected', account);
+		setCurrentAccount(account);
+		setIsLoggedIn(true);
+		getAllWaves();
+	};
+
 	const wave = async () => {
+		if (inputMessage.trim() === '') {
+			alert(
+				"Leave a comment in the text box above the 'Wave at Me' button and then hit the button!"
+			);
+			return;
+		}
+
 		try {
 			const { ethereum } = window;
 
@@ -43,14 +63,6 @@ export default function App() {
 				alert('Install Metamask!');
 				return;
 			}
-
-			const accounts = await ethereum.request({
-				method: 'eth_requestAccounts'
-			});
-
-			const account = accounts[0];
-			console.log('Connected', account);
-			setCurrentAccount(account);
 
 			const provider = new ethers.providers.Web3Provider(ethereum);
 			const signer = provider.getSigner();
@@ -83,7 +95,7 @@ export default function App() {
 			setAllWaves(processedWaves);
 		} catch (error) {
 			console.log(error);
-			alert('Mining your wave transaction failed!');
+			alert("If you've already waved today, come back tomorrow!");
 			setIsMining(false);
 		}
 	};
@@ -105,8 +117,10 @@ export default function App() {
 				const account = accounts[0];
 				console.log('Found authorized account!', account);
 				setCurrentAccount(account);
+				setIsLoggedIn(true);
 			} else {
 				console.log('No authorized account found!');
+				setIsLoggedIn(false);
 			}
 		} catch (error) {
 			console.error(error);
@@ -173,77 +187,84 @@ export default function App() {
 
 	return (
 		<div className="mainContainer">
-			<div className="dataContainer">
-				<a
-					href="https://open.spotify.com/artist/3pmjwXacGPNkhiROvf9K9V?si=FgDX8pSRRlCY0WCdXyaKuw"
-					target="_blank"
-				>
-					<img
-						className="logo"
-						src="https://raw.githubusercontent.com/numoonchld/numoonchld.github.io/master/media/spectrum-support-cropped.png"
-						alt="numoonchld"
-					/>
-				</a>
-
-				<div className="bio">
+			{!isLoggedIn && (
+				<button className="loginButton" onClick={connectWallet}>
+					Login to MetaMask
+				</button>
+			)}
+			{isLoggedIn && (
+				<div className="dataContainer">
 					<a
 						href="https://open.spotify.com/artist/3pmjwXacGPNkhiROvf9K9V?si=FgDX8pSRRlCY0WCdXyaKuw"
 						target="_blank"
 					>
-						numoonchld
+						<img
+							className="logo"
+							src="https://raw.githubusercontent.com/numoonchld/numoonchld.github.io/master/media/spectrum-support-cropped.png"
+							alt="numoonchld"
+						/>
 					</a>
-					<br />
-					#progressive
-					<br />
-					#EDM
-					<br />
-					<br />
-					<iframe
-						style={{ borderRadius: '12px', margin: '10px 0px 0px 0px' }}
-						src="https://open.spotify.com/embed/artist/3pmjwXacGPNkhiROvf9K9V?utm_source=generator"
-						width="100%"
-						height="300"
-						frameBorder="0"
-						allowFullScreen=""
-						allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-					/>
-					<br />
-					{!isMining && (
-						<div className="waveTile">
-							<textarea
-								className="waveMessage"
-								placeholder="thoughts?"
-								value={inputMessage}
-								onChange={event => setInputMessage(event.target.value)}
-								rows="5"
-								required
-							/>
-							<button className="waveButton" onClick={wave}>
-								<div>Wave at Me</div>
-								<small className="totalWaves">{allWaves.length}</small>
-							</button>
-							<small>(ETH wallet signature required)</small>
-						</div>
-					)}
-					{isMining && (
-						<>
-							<div className="miningSpinner" />
-						</>
-					)}
-				</div>
 
-				<div className="waveTable">
-					<b style={{ marginBottom: '2%' }}>Wave Log</b>
-					{allWaves.sort(compareTimestamps).map(wave => (
-						<div key={Date.parse(wave.timestamp)} className="waveTableEntry">
-							<small>{wave.address}</small>
-							<small>{wave.timestamp.toDateString()}</small>
-							<hr style={{ width: '100%' }} />
-							{wave.message ? wave.message : '<blank message>'}
-						</div>
-					))}
+					<div className="bio">
+						<a
+							href="https://open.spotify.com/artist/3pmjwXacGPNkhiROvf9K9V?si=FgDX8pSRRlCY0WCdXyaKuw"
+							target="_blank"
+						>
+							numoonchld
+						</a>
+						<br />
+						#progressive
+						<br />
+						#EDM
+						<br />
+						<br />
+						<iframe
+							style={{ borderRadius: '12px', margin: '10px 0px 0px 0px' }}
+							src="https://open.spotify.com/embed/artist/3pmjwXacGPNkhiROvf9K9V?utm_source=generator"
+							width="100%"
+							height="300"
+							frameBorder="0"
+							allowFullScreen=""
+							allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+						/>
+						<br />
+						{!isMining && (
+							<div className="waveTile">
+								<textarea
+									className="waveMessage"
+									placeholder="lovin' it!"
+									value={inputMessage}
+									onChange={event => setInputMessage(event.target.value)}
+									rows="5"
+									required
+								/>
+								<button className="waveButton" onClick={wave}>
+									<div>Wave at Me</div>
+									<small className="totalWaves">{allWaves.length}</small>
+								</button>
+								<small>(ETH wallet signature required)</small>
+							</div>
+						)}
+						{isMining && (
+							<>
+								<div className="miningSpinner" />
+							</>
+						)}
+					</div>
+
+					<div className="waveTable">
+						<b style={{ marginBottom: '2%' }}>Wave Log</b>
+						{allWaves.sort(compareTimestamps).map(wave => (
+							<div key={Date.parse(wave.timestamp)} className="waveTableEntry">
+								<small>{wave.address}</small>
+								<small>{wave.timestamp.toDateString()}</small>
+								<hr style={{ width: '100%' }} />
+								{wave.message ? wave.message : '<blank message>'}
+							</div>
+						))}
+					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }
